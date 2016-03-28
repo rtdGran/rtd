@@ -1,0 +1,426 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, height=device-height" >
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache">
+
+  
+  
+
+  
+  
+  
+
+  
+
+  <script type="text/javascript" src="//code.jquery.com/jquery-git.js"></script>
+
+  
+
+  
+
+  
+
+  
+    <link rel="stylesheet" type="text/css" href="/css/result-light.css">
+  
+
+  
+
+  <style type="text/css">
+    .actions a {
+  display: block;
+  margin: 25px auto 0;
+  width: 200px;
+  text-align: center;
+  background: #b31d14;
+  color: #c8c8c8;
+  padding: 6px;
+  border-radius: 3px;
+  text-decoration: none;
+}
+
+.filters {
+  margin-bottom: 20px;
+}
+
+.filter-container {
+  float: left;
+  width: 15%;
+  padding-right: 10px;
+}
+
+.filter-container:last-of-type {
+  padding-right: 0;
+}
+
+.filter-container input {
+  -webkit-appearance: none;
+  border: 1px solid #999;
+  background: #FFF;
+  border-radius: 2px;
+  font-size: x-small;
+  width: 100%;
+}
+
+.filter-container input:focus {
+  outline: none;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th {
+  text-align: left;
+  border-bottom: 1px solid #043a47;
+}
+
+table th,
+table td {
+  padding: 6px 4px;
+  font-size: x-small;
+}
+
+table td {
+  border-bottom: 1px solid #087891;
+  font-size: x-small;
+}
+
+table tr:last-of-type td {
+  border-bottom: none;
+}
+
+table tr td:last-of-type {
+  border-right: none;
+}
+
+.clearfix {
+  clear: both;
+  width: 100%;
+}
+
+a,
+button,
+p,
+div {
+  font-size: xx-small;
+  text-align: right;
+}
+
+.left {
+  text-align: left;
+}
+
+thead, tbody {
+    display: block;
+}
+tbody {
+    overflow-y: scroll;
+    height: 400px;
+}
+
+#unitStatusTable th:nth-of-type(1),
+#unitStatusTable td:nth-of-type(1) {
+    text-align: right;
+    width: 20px;
+}
+#unitStatusTable th:nth-of-type(2),
+#unitStatusTable td:nth-of-type(2) {
+    text-align: left;
+    width: 140px;
+}
+#unitStatusTable th:nth-of-type(3),
+#unitStatusTable td:nth-of-type(3) {
+    text-align: center;
+    width: 15px;
+}
+#unitStatusTable th:nth-of-type(4),
+#unitStatusTable td:nth-of-type(4) {
+    text-align: center;
+    width: 15px;
+}
+#unitStatusTable th:nth-of-type(5),
+#unitStatusTable td:nth-of-type(5) {
+    text-align: center;
+    width: 15px;
+}
+#unitStatusTable th:nth-of-type(6),
+#unitStatusTable td:nth-of-type(6) {
+    text-align: center;
+    width: 15px;
+}
+#unitStatusTable th:nth-of-type(7),
+#unitStatusTable td:nth-of-type(7) {
+    text-align: right;
+    width: 30px;
+}
+#unitStatusTable th:nth-of-type(8),
+#unitStatusTable td:nth-of-type(8) {
+    text-align: right;
+    width: 30px;
+}
+#unitStatusTable th:nth-of-type(9),
+#unitStatusTable td:nth-of-type(9) {
+    text-align: right;
+    width: 30px;
+}
+
+
+  </style>
+
+  <title>rtd_unit_lise by gran</title>
+
+  
+    
+
+
+
+
+<script type='text/javascript'>//<![CDATA[
+$(window).on('load', function() {
+//データ強制更新ボタン
+$("#resetData").click(function() {
+  $("#mess").text("データ再取得実行中...");
+  localStorage.removeItem("rtd_unit_status_info");
+  localStorage.removeItem("rtd_unit_status_items");
+  getUnitData();
+});
+
+//画面描画後処理
+$(document).ready(function() {
+  //データ取得＆テーブル生成
+  getUnitData();
+});
+
+/*****************************************************/
+//データ取得	getUnitData
+//WeDataからJSONPで取得し、localstorageに格納する処理。
+//処理完了後に後処理として「getUnitData_after()」を実行する。
+//	[LocalStorage Key]
+//		rtd_unit_status_info : WeData基本情報。更新日等を保持。
+//		rtd_unit_status_items : ユニットステータスデータ本体。
+/*****************************************************/
+function getUnitData() {
+  var flgNeedGetJsonData = false;
+  var chkInfo;
+  var chkItems;
+  // ローカルストレージ対応判定
+  if (!localStorage) {
+    alert('ローカルストレージに対応したブラウザを使用してください。');
+    flgNeedGetJsonData = true;
+    retrun(false);
+  } else {
+    //LS存在チェック
+    chkInfo = localStorage.getItem('rtd_unit_status_info');
+    chkItems = localStorage.getItem('rtd_unit_status_items');
+    if (!chkInfo || !chkItems) {
+      flgNeedGetJsonData = true;
+    }
+  }
+  //LSデータ更新確認（JSONP）rtd_unit_status_info
+  var url = 'http://wedata.net/databases/rtd_unit_status.json?callback=?';
+  var chkInfo = JSON.parse(chkInfo);
+  $.getJSON(url, function(jsonUnitStatusInfo) {
+    $("#mess").text("データ更新確認中...");
+    if (flgNeedGetJsonData || (chkInfo['updated_at'] != jsonUnitStatusInfo['updated_at'])) {
+      localStorage.setItem('rtd_unit_status_info', JSON.stringify(jsonUnitStatusInfo));
+      flgNeedGetJsonData = true;
+    }
+    $("#lastUpdate").text("データ最終更新: " + jsonUnitStatusInfo['updated_at']);
+
+    //データ取得が必要な場合
+    if (flgNeedGetJsonData) {
+      //データ取得（JSONP）
+      //取得元：http://wedata.net/databases/rtd_unit_status/items
+      var url = 'http://wedata.net/databases/rtd_unit_status/items.json?callback=?';
+      $.getJSON(url, function(jsonUnitData) {
+        $("#mess").text("データ取得実行中...");
+        localStorage.setItem('rtd_unit_status_items', JSON.stringify(jsonUnitData));
+        getUnitData_after();
+      });
+    } else {
+      getUnitData_after();
+    }
+  });
+};
+
+//データ取得後処理関数
+function getUnitData_after() {
+  createTable();
+}
+
+/*****************************/
+//テーブル生成
+/*****************************/
+function createTable() {
+
+  $("#mess").text("テーブル生成中...");
+  //LSからデータをJSON形式で引出
+  var unitdata = JSON.parse(localStorage.getItem('rtd_unit_status_items'));
+
+  //データ整理(Noで昇順ソート)
+  unitdata.sort(function(val1, val2) {
+    return (Number(val1.data.No) > Number(val2.data.No) ? 1 : -1);
+  });
+
+  //tbody初期化
+  $('table#unitStatusTable tbody *').remove();
+  //列作成
+  for (var key in unitdata) {
+    var workdata = unitdata[key].data;
+    var wikiUrl = "http://games.gaym.jp/iPhone/rtd/wiki?" + workdata.名称;
+
+    $("<tr><td>" + workdata.No + "</td><td class='left'><a target='_blank' href=\"" + wikiUrl + "\">" + workdata.名称 + "</a></td><td>" + workdata["★"] + "</td><td>" + workdata.武器 + "</td><td>" + workdata.主属性 + "</td><td>" + workdata.副属性 + "</td><td>" + workdata.HP + "</td><td>" + workdata.攻撃 + "</td><td>" + workdata.回復 + "</td></tr>").appendTo("table#unitStatusTable tbody")
+
+  }
+
+  //テーブル生成後実行関数
+  exeAfter();
+};
+
+/*****************************/
+//テーブル生成後実行関数
+/*****************************/
+function exeAfter() {
+  //メッセージクリア
+  $("#mess").text("");
+
+  //TODO
+  //ソート処理
+
+  //フィルタ関数
+  setFilter();
+  $('.filter').multifilter();
+
+}
+
+/*****************************/
+//フィルタ関数
+/*****************************/
+function setFilter() {
+  $.fn.multifilter = function(options) {
+    var settings = $.extend({
+      'target': $('table')
+    }, options);
+
+    jQuery.expr[":"].Contains = function(a, i, m) {
+      return (a.textContent || a.innerText || "").toUpperCase().indexOf(m[3].toUpperCase()) >= 0;
+    };
+
+    this.each(function() {
+      var $this = $(this);
+      container = settings.target
+      row_tag = 'tr';
+      item_tag = 'td'
+      rows = container.find($('tbody ' + row_tag))
+
+      var col = container.find('th:Contains(' + $this.attr('name') + ')');
+      var col_index = container.find($('thead th')).index(col);
+      $this.change(function() {
+        input = $this
+        filter = $this.val();
+        rows.each(function() {
+          hidden_rows = []
+          visible_rows = []
+          row = $(this);
+          cell = $(row.children(item_tag)[col_index])
+          if (filter) {
+            if (cell.text().toLowerCase().indexOf(filter.toLowerCase()) != -1) {
+              cell.attr('data-filtered', 'positive');
+            } else {
+              cell.attr('data-filtered', 'negative');
+            }
+            if (row.find(item_tag + "[data-filtered=negative]").length > 0) {
+              row.hide();
+            } else {
+              if (row.find(item_tag + "[data-filtered=positive]").length > 0) {
+                row.show();
+              }
+            }
+          } else {
+            cell.attr('data-filtered', 'positive');
+            if (row.find(item_tag + "[data-filtered=negative]").length > 0) {
+              row.hide();
+            } else {
+              if (row.find(item_tag + "[data-filtered=positive]").length > 0) {
+                row.show();
+              }
+            }
+          }
+        })
+        return false;
+      }).keyup(function() {
+        $this.change();
+      });
+    });
+  };
+};
+
+});//]]> 
+
+</script>
+
+  
+</head>
+
+<body>
+  <div class='container'>
+  <div class='filters'>
+    <div class='filter-container'>
+      <input autocomplete='off' class='filter' name='名称' placeholder='名称' />
+    </div>
+    <div class='filter-container'>
+      <input autocomplete='off' class='filter' name='★' placeholder='★' />
+    </div>
+    <div class='filter-container'>
+      <input autocomplete='off' class='filter' name='武器' placeholder='武器' />
+    </div>
+    <div class='filter-container'>
+      <input autocomplete='off' class='filter' name='主属性' placeholder='主属性' />
+    </div>
+    <div class='filter-container'>
+      <input autocomplete='off' class='filter' name='副属性' placeholder='副属性' />
+    </div>
+    <div class='clearfix'></div>
+  </div>
+</div>
+<div class='container'>
+  <table id="unitStatusTable">
+    <thead>
+      <th>No</th>
+      <th>名称</th>
+      <th>★</th>
+      <th>武器</th>
+      <th>主属</th>
+      <th>副属</th>
+      <th>HP</th>
+      <th>攻撃</th>
+      <th>回復</th>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <br>
+  <div>
+    <a href="http://jsfiddle.net/gran/12zy2d7t/">オリジナル</a>
+<br>
+    <a href="http://wedata.net/databases/rtd_unit_status/items">データ管理場所＠WeData</a>
+    <P id="lastUpdate"></P>
+    <button id="resetData">
+      データ再取得 (強制更新用。通常は自動で更新されます。)
+    </button>
+    <P id="mess"></P>
+  </div>
+
+  
+</body>
+
+</html>
